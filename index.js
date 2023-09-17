@@ -72,7 +72,7 @@ app.post('/login', (req, res)=> {
 
 app.get('/getUser', (req, res)=> {
     ReceiverModel.find()
-    .then(users => res.json(users))
+    .then(allusers => res.json(users))
     .catch(err => res.json(err))
 })
 
