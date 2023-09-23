@@ -18,7 +18,6 @@ app.use(cookieParser())
 const dbURL= "mongodb+srv://rakshitavipperla:02082003@cluster0.ddgcldq.mongodb.net/?retryWrites=true&w=majority";
 
 
-
 mongoose.connect(dbURL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
