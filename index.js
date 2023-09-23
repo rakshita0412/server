@@ -14,8 +14,24 @@ app.use(cors({
     credentials: true
 }))
 app.use(cookieParser())
+// mongodb+srv://rakshitavipperla:02082003@cluster0.ddgcldq.mongodb.net/?retryWrites=true&w=majority
+const dbURL= "mongodb+srv://rakshitavipperla:02082003@cluster0.ddgcldq.mongodb.net/?retryWrites=true&w=majority";
 
-mongoose.connect('mongodb://127.0.0.1:27017/receiver');
+
+
+mongoose.connect(dbURL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+    .then(() => {
+      console.log('Connected to MongoDB');
+    })
+    .catch((error) => {
+      console.error('Error connecting to MongoDB:', error);
+    });
+  
+
+
 
 const varifyUser = (req, res, next) => {
     const token = req.cookies.token;
@@ -52,16 +68,18 @@ app.post('/register',(req, res) => {
 
 app.post('/login', (req, res)=> {
     const {email, password} = req.body;
+    console.log(email, password);
     ReceiverModel.findOne({email: email})
     .then(user => {
         if(user) {
             bcrypt.compare(password, user.password, (err, response) => {
                 if(response) {
+                    console.log(response.data);
                   const token = jwt.sign({email: user.email, role: user.role}, "jwt-secret-key", {expiresIn: '1d'})
                   res.cookie('token', token)
                     return res.json({Status: "Success", role: user.role})
                 } else {
-                    return res.json("the password is invalid")
+                    return res.json({Status:"the password is invalid"})
                 }
             })
         } else {
@@ -70,11 +88,26 @@ app.post('/login', (req, res)=> {
     })
 })
 
-app.get('/getUser', (req, res)=> {
-    ReceiverModel.find()
-    .then(allusers => res.json(users))
-    .catch(err => res.json(err))
-})
+app.post('/getUserData', (req, res)=> {
+    console.log(req.body);
+    console.log("I am calling");
+    ReceiverModel.find({email:req.body.email})
+    if(user) {
+        bcrypt.compare(password, user.password, (err, response) => {
+            if(response) {
+                console.log(response.data);
+              const token = jwt.sign({email: user.email, role: user.role}, "jwt-secret-key", {expiresIn: '1d'})
+              res.cookie('token', token)
+                return res.json({Status: "Success", role: user.role})
+            } else {
+                return res.json({Status:"the password is invalid"})
+            }
+        })
+    } else {
+        return res.json("No records exist")
+    }    
+});
+
 
 app.listen(3001, () => {
     console.log("server is running")
