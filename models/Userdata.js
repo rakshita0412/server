@@ -17,18 +17,18 @@ const userDataSchema = new mongoose.Schema({
             type: Number,
             default: 0,
         },
-        loginTime: {
+        loginTime: [{
             type: Object,
             default: {},
-        },
-        loginCountPerDay: {
+        }],
+        loginCountPerDay: [{
             type: Object,
             default: {},
-        },
-        IPaddress: {
+        }],
+        Location: [{
             type: Object,
             default: {},
-        }
+        }]
         // You can add more subfields here as needed
     }
 });

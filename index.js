@@ -40,11 +40,26 @@ mongoose.connect(dbURL, {
 // Create a new user data document
 async function createUserData(email, userData) {
     console.log("I'm called");
+    
     try {
+
+
+
         const newUserData = new UserDataModel({
-            email: email,
-            data: userData,
+            email,
+            data: {
+                
+                loginTime: [{}],
+                loginDates:[] ,
+                loginCount: 0,
+                loginCountPerDay: [{}],
+                Location:[{}]
+                
+            }
+            
         });
+
+
         await newUserData.save();
         console.log('User data created successfully:', newUserData);
         return newUserData;
@@ -89,32 +104,40 @@ app.get('/dashboard', verifyUser, (req, res) => {
 });
   
 
-// Create a POST route for /getapi
-app.post('/getapi', async (req, res) => {
+
+app.post('/getapi', async(req, res) => {
     try {
-      // Assuming you want to collect and send data from the client-side Axios GET request
       const { api } = req.body;
+      console.log(api)
   
-      // Use the received data to create the OpenWeatherMap API URL
-      //const openWeatherMapAPI = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=${f063a2165625a04f3a18bccbe46bda1c}`;
-  
-      // Fetch data from the OpenWeatherMap API
+    if(api){
       const response = await axios.get(api);
-      console.log("called", response.data);
+
+    //   console.log("called", response.data);
+      res.json({success: true, city: response.data.name  });
   
-      
-      res.json({ });
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      res.status(500).json({ error: 'Internal Server Error' });
     }
+    } catch (error) {
+    //   console.error('Error fetching data:', error);
+      res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+  });
+  
+
+
+  app.post('/trackClicks', (req, res) => {
+    console.log("button click")
+    const clickCount = req.body.clickCount;
+    console.log(`Received click count from client: ${clickCount}`);
+
+    res.status(200).send('Click count received successfully.');
   });
   
   
 
 
 app.post("/updateUserData", async(req, res) => {
-    const{ email, loginTime, loginDate } = req.body;
+    const{ email, loginTime, loginDate, location } = req.body;
     console.log(req.body);
     console.log("i am calling ")
 
@@ -130,6 +153,8 @@ app.post("/updateUserData", async(req, res) => {
     
             // Update login count
             userData.data.loginCount++;
+            //userData.data.IPaddress = ipAddress;
+            //userData.data.location = location;
     
             // Check if it's a new day, and if so, reset the per day login count
             if (loginDate in userData.data.loginCountPerDay[0] ) {
@@ -158,8 +183,8 @@ app.post("/updateUserData", async(req, res) => {
                 console.log("Date is not present");
                 userData.data.loginDates.push(loginDate);
                 console.log("date is added to login date succecssfully");
-
              }
+
 
 
             userData.markModified('data.loginCountPerDay');
@@ -168,6 +193,17 @@ app.post("/updateUserData", async(req, res) => {
 
             userData.markModified('data.loginTime');
     
+
+            if (userData.data.Location[0][loginDate]) {
+                userData.data.Location[0][loginDate].push(location);
+                console.log("i am");
+            } else {
+                userData.data.Location[0][loginDate] = [location];
+            }
+
+            userData.markModified('data.Location');
+
+
 
             // Save the updated user data
             await userData.save();
@@ -192,16 +228,23 @@ app.post("/updateUserData", async(req, res) => {
 
     
 app.post('/register',(req, res) => {
+    // console.log("i am called")
     const {name, email, password} = req.body;
+    // console.log(name, email, password)
     bcrypt.hash(password, 10)
     .then(hash => {
+        console.log("i am here")
+        
         UserModel.create({name, email, password: hash})
         .then(user => {
             res.json({status: "Success"});
                     // Create user data document after user registration
                     createUserData(email);
         })
-        .catch(err => res.json(err))
+        .catch(err => {
+            console.log(err)
+            res.json(err)
+        })
     }).catch(err => res.json(err))
 
 
@@ -230,6 +273,51 @@ app.post('/login', (req, res) => {
             }
         })
 });
+
+
+
+
+
+
+
+
+
+
+
+// async function retrieveAndLogData() {
+//     try {
+//       // Connect to the MongoDB database
+//       await mongoose.connect(dbURL, {
+//         useNewUrlParser: true,
+//         useUnifiedTopology: true,
+//       });
+  
+//       // Fetch all documents from the collection
+//       const allData = await UserDataModel.find({});
+  
+//       // Log the retrieved data
+//       console.log('All Data:', allData);
+//     } catch (error) {
+//       console.error('Error retrieving and logging data:', error);
+//     } finally {
+//       // Close the database connection
+//       mongoose.connection.close();
+//     }
+//   }
+  
+//   // Call the function to retrieve and log the data
+//   retrieveAndLogData();
+  
+
+
+
+
+
+
+
+
+
+
 
 app.listen(3002, () => {
     console.log("Server is running on port 3002");
