@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const UserModel = require('./models/User');
 const UserDataModel = require('./models/Userdata');
+const axios = require('axios');
+
 
 const app = express();
 app.use(express.json());
@@ -17,6 +19,10 @@ app.use(
     })
 );
 app.use(cookieParser());
+
+
+//app.enable('trust proxy'); // Enable proxy support in Express
+
 
 const dbURL = "mongodb+srv://rakshitavipperla:02082003@cluster0.ddgcldq.mongodb.net/lau?retryWrites=true&w=majority";
 
@@ -81,6 +87,31 @@ const verifyUser = (req, res, next) => {
 app.get('/dashboard', verifyUser, (req, res) => {
     res.json("Success");
 });
+  
+
+// Create a POST route for /getapi
+app.post('/getapi', async (req, res) => {
+    try {
+      // Assuming you want to collect and send data from the client-side Axios GET request
+      const { api } = req.body;
+  
+      // Use the received data to create the OpenWeatherMap API URL
+      //const openWeatherMapAPI = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=${f063a2165625a04f3a18bccbe46bda1c}`;
+  
+      // Fetch data from the OpenWeatherMap API
+      const response = await axios.get(api);
+      console.log("called", response.data);
+  
+      
+      res.json({ });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  });
+  
+  
+
 
 app.post("/updateUserData", async(req, res) => {
     const{ email, loginTime, loginDate } = req.body;
@@ -110,17 +141,34 @@ app.post("/updateUserData", async(req, res) => {
                 console.log(userData.data.loginCountPerDay[0])
             }
 
+            
+            
+            // Check if the date exists in loginTime, and add the time to the list
+            if (userData.data.loginTime[0][loginDate]) {
+                userData.data.loginTime[0][loginDate].push(loginTime);
+                console.log("i am");
+            } else {
+                userData.data.loginTime[0][loginDate] = [loginTime];
+            }
+
+           
+
+           if (!userData.data.loginDates.includes(loginDate)) {
+                console.log(loginDate);
+                console.log("Date is not present");
+                userData.data.loginDates.push(loginDate);
+                console.log("date is added to login date succecssfully");
+
+             }
+
+
             userData.markModified('data.loginCountPerDay');
+
+            userData.markModified('data.loginDates');
+
+            userData.markModified('data.loginTime');
     
-            // Update IP address (you can store it as an array if needed)
-           // userData.data.IPaddress.push(clientIp);
-    
-            // Update last login date
-            //userData.data.lastLoginDate = loginDate;
-    
-            // Update login time (you can store it as an array if needed)
-            //userData.data.loginTime.push(loginTime);
-    
+
             // Save the updated user data
             await userData.save();
     
@@ -140,8 +188,27 @@ app.post("/updateUserData", async(req, res) => {
             res.status(500).json({ error: 'An error occurred while updating data' });
         }
     });
-    
 
+
+    
+app.post('/register',(req, res) => {
+    const {name, email, password} = req.body;
+    bcrypt.hash(password, 10)
+    .then(hash => {
+        UserModel.create({name, email, password: hash})
+        .then(user => {
+            res.json({status: "Success"});
+                    // Create user data document after user registration
+                    createUserData(email);
+        })
+        .catch(err => res.json(err))
+    }).catch(err => res.json(err))
+
+
+})
+
+
+    
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
     console.log(email, password);

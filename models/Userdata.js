@@ -11,7 +11,7 @@ const userDataSchema = new mongoose.Schema({
     ,
     data: {
         loginDates: [{
-            type: Date,
+            type: String,
         }],
         loginCount: {
             type: Number,
