@@ -49,8 +49,8 @@ async function createUserData(email, userData) {
             email,
             data: {
                 
-                loginTime: [{}],
                 loginDates:[] ,
+                loginTime: [{}],
                 loginCount: 0,
                 loginCountPerDay: [{}],
                 Location:[{}]
@@ -192,7 +192,7 @@ app.post("/updateUserData", async(req, res) => {
             userData.markModified('data.loginDates');
 
             userData.markModified('data.loginTime');
-    
+            
 
             if (userData.data.Location[0][loginDate]) {
                 userData.data.Location[0][loginDate].push(location);
@@ -224,6 +224,37 @@ app.post("/updateUserData", async(req, res) => {
             res.status(500).json({ error: 'An error occurred while updating data' });
         }
     });
+
+
+
+app.post('/getUserData', async(req, res) => {
+    console.log(req.body)
+    // res.json({'msg':'iconnected'})
+    try {
+        const { email } = req.body;
+        
+        // Find the user data based on the provided email
+        const userData = await getUserDataByEmail(email);
+
+        if (!userData) {
+            return res.status(404).json({ message: 'User data not found' });
+        }
+        const formattedUserData = {
+            email: userData.email,
+            loginDates: userData.data.loginDates,
+            loginTime: userData.data.loginTime,
+            loginCount: userData.data.loginCount,
+            loginCountPerDay: userData.data.loginCountPerDay,
+            Location: userData.data.Location,
+        };
+
+        // Send the formatted user data as the response
+        res.json({ success: true, userData: formattedUserData });
+    } catch (error) {
+        console.error('Error fetching user data by email:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+});   
 
 
     
