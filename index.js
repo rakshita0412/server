@@ -180,7 +180,7 @@ app.post("/updateUserData", async(req, res) => {
 
            if (!userData.data.loginDates.includes(loginDate)) {
                 console.log(loginDate);
-                console.log("Date is not present");
+                console.log("Date not present");
                 userData.data.loginDates.push(loginDate);
                 console.log("date is added to login date succecssfully");
              }
