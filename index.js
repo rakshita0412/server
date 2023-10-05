@@ -205,20 +205,9 @@ app.post("/updateUserData", async(req, res) => {
 
 
 
-            // Save the updated user data
             await userData.save();
     
-            // Format the data as per your desired output
-            // const formattedData = {
-            //     email: userData.email,
-            //     loginTime: userData.data.loginTime,
-            //     loginDate: userData.data.loginDates.join(' '), // Join dates if multiple
-            //     loginCount: userData.data.loginCount,
-            //     perDayLoginCount: userData.data.loginCountPerDay,
-            //     IPaddress: userData.data.IPaddress,
-            // };
-    
-            //res.json(formattedData);
+         
         } catch (error) {
             console.error('Error updating user data:', error);
             res.status(500).json({ error: 'An error occurred while updating data' });
